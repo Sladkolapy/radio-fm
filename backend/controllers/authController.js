@@ -3,11 +3,14 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const db = require('../config/db');
 
-const generateToken = (userId, username) => {
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+
+const generateToken = (userId, username, role) => {
   return jwt.sign(
-    { userId, username },
-    process.env.JWT_SECRET || 'your-secret-key',
-    { expiresIn: '24h' }
+    { userId, username, role },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN }
   );
 };
 
@@ -36,13 +39,14 @@ exports.register = async (req, res) => {
           return res.status(500).json({ error: 'Database error' });
         }
 
-        const token = generateToken(this.lastID, username);
+        const token = generateToken(this.lastID, username, 'user');
         res.status(201).json({
           message: 'User registered successfully',
           token,
           user: {
             id: this.lastID,
-            username
+            username,
+            role: 'user'
           }
         });
       }
@@ -79,14 +83,15 @@ exports.login = async (req, res) => {
           return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        const token = generateToken(user.id, user.username);
-        
+        const token = generateToken(user.id, user.username, user.role || 'user');
+
         res.json({
           message: 'Login successful',
           token,
           user: {
             id: user.id,
-            username: user.username
+            username: user.username,
+            role: user.role || 'user'
           }
         });
       }
@@ -102,7 +107,7 @@ exports.getProfile = async (req, res) => {
     const userId = req.userId;
 
     db.get(
-      'SELECT id, username, created_at FROM users WHERE id = ?',
+      'SELECT id, username, role, created_at FROM users WHERE id = ?',
       [userId],
       (err, user) => {
         if (err) {

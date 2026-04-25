@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@shared/ui/Button';
 import { Input } from '@shared/ui/Input';
 import { useAppDispatch, useAppSelector } from '@shared/hooks';
-import { login, logout } from '@features/auth/store/authSlice';
+import { login, register } from '@features/auth/store/authSlice';
 
 const AuthLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
@@ -89,7 +89,7 @@ const RegisterForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await dispatch(login({ username, password }));
+    await dispatch(register({ username, password }));
   };
 
   return (

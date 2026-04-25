@@ -6,6 +6,14 @@ import { store } from './store';
 import App from './App';
 import './styles/index.css';
 
+if ('serviceWorker' in navigator && import.meta.env.MODE === 'production') {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js').catch((error) => {
+      console.error('Service Worker registration failed:', error);
+    });
+  });
+}
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <Provider store={store}>

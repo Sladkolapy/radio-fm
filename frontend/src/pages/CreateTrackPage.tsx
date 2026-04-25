@@ -1,41 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@shared/hooks';
-import { createTrack } from '@features/music/store/musicSlice';
-import { logout } from '@features/auth/store/authSlice';
-import { Upload, X } from 'lucide-react';
+import { createTrack, fetchTags } from '@features/music/store/musicSlice';
+import { TagSelector } from '@features/music/components/TagSelector';
 import { Button } from '@shared/ui/Button';
 import { Input } from '@shared/ui/Input';
 
 const CreateTrackPage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { user, isLoading: authLoading } = useAppSelector((state) => state.auth);
   const { isLoading: musicLoading } = useAppSelector((state) => state.music);
+  const { tags } = useAppSelector((state) => state.music);
 
   const [title, setTitle] = useState('');
   const [artist, setArtist] = useState('');
   const [moodType, setMoodType] = useState('focus');
+  const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    if (tags.length === 0) {
+      dispatch(fetchTags());
+    }
+  }, [dispatch, tags.length]);
+
   const moodTypes = ['focus', 'energy', 'calm', 'motivation', 'relax'];
-  const moodNames = {
+  const moodNames: Record<string, string> = {
     focus: 'Фокус',
     energy: 'Энергичность',
     calm: 'Спокойствие',
     motivation: 'Мотивация',
     relax: 'Релаксация'
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, files } = e.target;
-    if (name === 'audio') {
-      setAudioFile(files?.[0] || null);
-    } else if (name === 'cover') {
-      setCoverFile(files?.[0] || null);
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,6 +55,7 @@ const CreateTrackPage: React.FC = () => {
       formData.append('artist', artist);
       formData.append('mood_type', moodType);
       formData.append('audio', audioFile);
+      formData.append('tags', JSON.stringify(selectedTagIds));
       if (coverFile) {
         formData.append('cover', coverFile);
       }
@@ -69,19 +67,6 @@ const CreateTrackPage: React.FC = () => {
     }
   };
 
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate('/login');
-  };
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-primary-50">
       <div className="max-w-2xl mx-auto p-4 md:p-8">
@@ -91,10 +76,10 @@ const CreateTrackPage: React.FC = () => {
             <p className="text-gray-600">Add a new track to your music library</p>
           </div>
           <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors text-sm font-medium"
+            onClick={() => navigate('/music')}
+            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors text-sm font-medium"
           >
-            Logout
+            Back
           </button>
         </div>
 
@@ -106,9 +91,7 @@ const CreateTrackPage: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="space-y-6 bg-white rounded-2xl shadow-lg p-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Title *
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
             <Input
               type="text"
               placeholder="Enter track title"
@@ -119,9 +102,7 @@ const CreateTrackPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Artist *
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Artist *</label>
             <Input
               type="text"
               placeholder="Enter artist name"
@@ -132,9 +113,7 @@ const CreateTrackPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Mood Type
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Mood Type</label>
             <select
               value={moodType}
               onChange={(e) => setMoodType(e.target.value)}
@@ -148,15 +127,24 @@ const CreateTrackPage: React.FC = () => {
             </select>
           </div>
 
+          {tags.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Tags</label>
+              <TagSelector
+                tags={tags}
+                selectedTagIds={selectedTagIds}
+                onChange={setSelectedTagIds}
+              />
+            </div>
+          )}
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Audio File *
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Audio File *</label>
             <input
               type="file"
               name="audio"
               accept="audio/*"
-              onChange={handleFileChange}
+              onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
               className="block w-full text-sm text-gray-500
                 file:mr-4 file:py-2 file:px-4
                 file:rounded-lg file:border-0
@@ -169,14 +157,12 @@ const CreateTrackPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Cover Image (optional)
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Cover Image (optional)</label>
             <input
               type="file"
               name="cover"
               accept="image/*"
-              onChange={handleFileChange}
+              onChange={(e) => setCoverFile(e.target.files?.[0] || null)}
               className="block w-full text-sm text-gray-500
                 file:mr-4 file:py-2 file:px-4
                 file:rounded-lg file:border-0

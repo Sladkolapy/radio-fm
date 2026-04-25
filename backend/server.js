@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const db = require('./config/db');
-const { setupAuthRoutes, setupTrackRoutes, setupAdminRoutes } = require('./routes');
+const { setupAuthRoutes, setupTrackRoutes, setupTagRoutes, setupAdminRoutes } = require('./routes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,6 +19,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // API routes
 setupAuthRoutes(app);
 setupTrackRoutes(app);
+setupTagRoutes(app);
 setupAdminRoutes(app);
 
 // Health check

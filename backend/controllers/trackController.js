@@ -2,79 +2,81 @@ const db = require('../config/db');
 const path = require('path');
 const fs = require('fs');
 
+function attachTagsToTracks(tracks, callback) {
+  if (tracks.length === 0) {
+    return callback(tracks);
+  }
+
+  const trackIds = tracks.map(t => t.id);
+  const placeholders = trackIds.map(() => '?').join(',');
+
+  db.all(`
+    SELECT tt.track_id, tg.id as tag_id, tg.name as tag_name, tg.color as tag_color
+    FROM track_tags tt
+    JOIN tags tg ON tt.tag_id = tg.id
+    WHERE tt.track_id IN (${placeholders})
+  `, trackIds, (err, tagRows) => {
+    if (err) {
+      console.error('Error fetching tags for tracks:', err.message);
+      return callback(tracks);
+    }
+
+    const tagMap = {};
+    tagRows.forEach(row => {
+      if (!tagMap[row.track_id]) tagMap[row.track_id] = [];
+      tagMap[row.track_id].push({ id: row.tag_id, name: row.tag_name, color: row.tag_color });
+    });
+
+    const result = tracks.map(track => ({
+      ...track,
+      tags: tagMap[track.id] || []
+    }));
+
+    callback(result);
+  });
+}
+
 exports.getAllTracks = (req, res) => {
   try {
-    db.all(`
-      SELECT 
-        t.id, t.title, t.artist, t.cover_url, t.mood_type, t.created_at,
-        u.username as creator_name
+    const { tag_id, mood_type } = req.query;
+    let query = `
+      SELECT t.id, t.title, t.artist, t.file_path, t.cover_url, t.mood_type, t.created_at,
+             u.username as creator_name
       FROM tracks t
       LEFT JOIN users u ON t.created_by = u.id
-      ORDER BY t.created_at DESC
-    `, (err, tracks) => {
+    `;
+    const conditions = [];
+    const params = [];
+
+    if (tag_id) {
+      query += ' JOIN track_tags tt ON t.id = tt.track_id';
+      conditions.push('tt.tag_id = ?');
+      params.push(tag_id);
+    }
+
+    if (mood_type) {
+      conditions.push('t.mood_type = ?');
+      params.push(mood_type);
+    }
+
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
+    }
+
+    query += ' GROUP BY t.id ORDER BY t.created_at DESC';
+
+    db.all(query, params, (err, tracks) => {
       if (err) {
         return res.status(500).json({ error: 'Database error' });
       }
+      console.log('Tracks fetched from DB:', tracks);
 
-      // Add public access flag
-      tracks = tracks.map(track => ({
-        ...track,
-        is_public: true
-      }));
-
-      res.json({ tracks });
+      attachTagsToTracks(tracks, (tracksWithTags) => {
+        res.json({ tracks: tracksWithTags });
+      });
     });
   } catch (error) {
     console.error('Get all tracks error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
-exports.getPublicTracks = (req, res) => {
-  try {
-    db.all(`
-      SELECT 
-        t.id, t.title, t.artist, t.cover_url, t.mood_type, t.created_at
-      FROM tracks t
-      ORDER BY t.created_at DESC
-    `, (err, tracks) => {
-      if (err) {
-        return res.status(500).json({ error: 'Database error' });
-      }
-
-      tracks = tracks.map(track => ({
-        ...track,
-        is_public: true
-      }));
-
-      res.json({ tracks });
-    });
-  } catch (error) {
-    console.error('Get public tracks error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
-exports.getUserPrivateTracks = async (req, res) => {
-  try {
-    const userId = req.userId;
-
-    db.all(`
-      SELECT 
-        t.id, t.title, t.artist, t.file_path, t.cover_url, t.mood_type, t.created_at
-      FROM tracks t
-      JOIN user_tracks ut ON t.id = ut.track_id
-      WHERE ut.user_id = ?
-      ORDER BY t.created_at DESC
-    `, [userId], (err, tracks) => {
-      if (err) {
-        return res.status(500).json({ error: 'Database error' });
-      }
-
-      res.json({ tracks, user_id: userId });
-    });
-  } catch (error) {
-    console.error('Get user tracks error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -84,7 +86,7 @@ exports.getTrackById = (req, res) => {
     const { id } = req.params;
 
     db.get(
-      'SELECT * FROM tracks WHERE id = ?',
+      'SELECT t.*, u.username as creator_name FROM tracks t LEFT JOIN users u ON t.created_by = u.id WHERE t.id = ?',
       [id],
       (err, track) => {
         if (err) {
@@ -95,7 +97,16 @@ exports.getTrackById = (req, res) => {
           return res.status(404).json({ error: 'Track not found' });
         }
 
-        res.json({ track, is_public: true });
+        db.all(
+          'SELECT tg.id, tg.name, tg.color FROM track_tags tt JOIN tags tg ON tt.tag_id = tg.id WHERE tt.track_id = ?',
+          [id],
+          (err, tags) => {
+            if (err) {
+              return res.status(500).json({ error: 'Database error' });
+            }
+            res.json({ track: { ...track, tags: tags || [] } });
+          }
+        );
       }
     );
   } catch (error) {
@@ -104,11 +115,48 @@ exports.getTrackById = (req, res) => {
   }
 };
 
+exports.getUserPrivateTracks = async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    db.all(`
+      SELECT t.id, t.title, t.artist, t.file_path, t.cover_url, t.mood_type, t.created_at
+      FROM tracks t
+      JOIN user_tracks ut ON t.id = ut.track_id
+      WHERE ut.user_id = ?
+      ORDER BY t.created_at DESC
+    `, [userId], (err, tracks) => {
+      if (err) {
+        return res.status(500).json({ error: 'Database error' });
+      }
+
+      attachTagsToTracks(tracks, (tracksWithTags) => {
+        res.json({ tracks: tracksWithTags, user_id: userId });
+      });
+    });
+  } catch (error) {
+    console.error('Get user tracks error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+function syncTrackTags(trackId, tags, callback) {
+  db.run('DELETE FROM track_tags WHERE track_id = ?', [trackId], (err) => {
+    if (err) return callback(err);
+
+    if (!tags || tags.length === 0) return callback(null);
+
+    const stmt = db.prepare('INSERT INTO track_tags (track_id, tag_id) VALUES (?, ?)');
+    tags.forEach(tagId => stmt.run(trackId, tagId));
+    stmt.finalize(callback);
+  });
+}
+
 exports.createTrack = (req, res) => {
   try {
-    const { title, artist, mood_type } = req.body;
+    const { title, artist, mood_type, tags } = req.body;
     const userId = req.userId;
-    const audioFile = req.file;
+    const audioFile = req.files?.audio ? req.files.audio[0] : null;
     const coverFile = req.files?.cover ? req.files.cover[0] : null;
 
     if (!audioFile) {
@@ -135,16 +183,26 @@ exports.createTrack = (req, res) => {
           return res.status(500).json({ error: 'Database error' });
         }
 
-        res.status(201).json({
-          message: 'Track created successfully',
-          track: {
-            id: this.lastID,
-            title,
-            artist,
-            file_path: audioPath,
-            cover_url: coverUrl,
-            mood_type
+        const trackId = this.lastID;
+        const tagIds = tags ? (typeof tags === 'string' ? JSON.parse(tags) : tags) : [];
+
+        syncTrackTags(trackId, tagIds, (tagErr) => {
+          if (tagErr) {
+            console.error('Error syncing tags:', tagErr.message);
           }
+
+          res.status(201).json({
+            message: 'Track created successfully',
+            track: {
+              id: trackId,
+              title,
+              artist,
+              file_path: audioPath,
+              cover_url: coverUrl,
+              mood_type,
+              tags: tagIds
+            }
+          });
         });
       }
     );
@@ -157,10 +215,9 @@ exports.createTrack = (req, res) => {
 exports.updateTrack = (req, res) => {
   try {
     const { id } = req.params;
-    const { title, artist, mood_type } = req.body;
+    const { title, artist, mood_type, tags } = req.body;
     const userId = req.userId;
 
-    // Check if track exists and belongs to user
     db.get(
       'SELECT * FROM tracks WHERE id = ?',
       [id],
@@ -173,7 +230,7 @@ exports.updateTrack = (req, res) => {
           return res.status(404).json({ error: 'Track not found' });
         }
 
-        if (track.created_by !== userId) {
+        if (track.created_by !== userId && req.userRole !== 'admin') {
           return res.status(403).json({ error: 'Not authorized to update this track' });
         }
 
@@ -199,17 +256,31 @@ exports.updateTrack = (req, res) => {
           values.push(mood_type);
         }
 
-        values.push(id);
-
-        const updateQuery = `UPDATE tracks SET ${updateFields.join(', ')} WHERE id = ?`;
-
-        db.run(updateQuery, values, function(err) {
-          if (err) {
-            return res.status(500).json({ error: 'Database error' });
+        const doUpdate = () => {
+          if (updateFields.length > 0) {
+            values.push(id);
+            db.run(`UPDATE tracks SET ${updateFields.join(', ')} WHERE id = ?`, values, function(err) {
+              if (err) {
+                return res.status(500).json({ error: 'Database error' });
+              }
+              res.json({ message: 'Track updated successfully' });
+            });
+          } else {
+            res.json({ message: 'Track updated successfully' });
           }
+        };
 
-          res.json({ message: 'Track updated successfully' });
-        });
+        if (tags !== undefined) {
+          const tagIds = typeof tags === 'string' ? JSON.parse(tags) : tags;
+          syncTrackTags(Number(id), tagIds, (tagErr) => {
+            if (tagErr) {
+              console.error('Error syncing tags:', tagErr.message);
+            }
+            doUpdate();
+          });
+        } else {
+          doUpdate();
+        }
       }
     );
   } catch (error) {
@@ -235,11 +306,10 @@ exports.deleteTrack = (req, res) => {
           return res.status(404).json({ error: 'Track not found' });
         }
 
-        if (track.created_by !== userId) {
+        if (track.created_by !== userId && req.userRole !== 'admin') {
           return res.status(403).json({ error: 'Not authorized to delete this track' });
         }
 
-        // Delete audio file
         if (track.file_path) {
           const audioPath = path.join(__dirname, '..', track.file_path);
           if (fs.existsSync(audioPath)) {
@@ -247,7 +317,6 @@ exports.deleteTrack = (req, res) => {
           }
         }
 
-        // Delete cover file
         if (track.cover_url) {
           const coverPath = path.join(__dirname, '..', track.cover_url);
           if (fs.existsSync(coverPath)) {
@@ -272,12 +341,9 @@ exports.deleteTrack = (req, res) => {
 
 exports.getAllTracksAdmin = (req, res) => {
   try {
-    const userId = req.userId;
-
     db.all(`
-      SELECT 
-        t.id, t.title, t.artist, t.file_path, t.cover_url, t.mood_type, t.created_at,
-        u.username as creator_name
+      SELECT t.id, t.title, t.artist, t.file_path, t.cover_url, t.mood_type, t.created_at,
+             u.username as creator_name
       FROM tracks t
       LEFT JOIN users u ON t.created_by = u.id
       ORDER BY t.created_at DESC
@@ -286,7 +352,9 @@ exports.getAllTracksAdmin = (req, res) => {
         return res.status(500).json({ error: 'Database error' });
       }
 
-      res.json({ tracks, admin_id: userId });
+      attachTagsToTracks(tracks, (tracksWithTags) => {
+        res.json({ tracks: tracksWithTags });
+      });
     });
   } catch (error) {
     console.error('Get admin tracks error:', error);

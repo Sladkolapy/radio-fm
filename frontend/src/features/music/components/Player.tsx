@@ -1,9 +1,7 @@
 import React, { useRef, useState } from 'react';
-import { Play, Pause, SkipForward, SkipBack, Volume2, PauseCircle } from 'lucide-react';
-import { cn } from '@shared/utils/cn';
-import { useAppSelector, useAppDispatch } from '@shared/hooks';
+import { Play, Pause, SkipForward, SkipBack, Volume2 } from 'lucide-react';
+import { useAppDispatch, useAppSelector } from '@shared/hooks';
 import {
-  setCurrentTrack,
   togglePlayPause,
   nextTrack,
   prevTrack,
@@ -15,17 +13,23 @@ interface PlayerProps {
   tracks: Track[];
 }
 
-export const Player: React.FC<PlayerProps> = ({ tracks }) => {
+export const Player: React.FC<PlayerProps> = ({ tracks: _tracks }) => {
   const dispatch = useAppDispatch();
   const audioRef = useRef<HTMLAudioElement>(null);
   const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
 
-  const { currentTrack, isPlaying, playlist } = useAppSelector((state) => state.music);
+  const { currentTrack, isPlaying } = useAppSelector((state) => state.music);
 
   React.useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
+    
+    console.log('Player: Audio element initialized. Current track:', currentTrack);
+    if (currentTrack) {
+        console.log('Player: Audio source path:', currentTrack.file_path);
+    }
 
     const handleTimeUpdate = () => {
       if (!isDragging) {
@@ -35,35 +39,57 @@ export const Player: React.FC<PlayerProps> = ({ tracks }) => {
     };
 
     const handleLoadedMetadata = () => {
+      console.log('Player: loadedmetadata, duration:', audio.duration);
       setCurrentTime(audio.currentTime);
+      setDuration(audio.duration);
     };
 
     const handleEnded = () => {
       dispatch(nextTrack());
     };
+    
+    const handleError = (e: any) => {
+      console.error('Player: Audio error:', e);
+      console.error('Player: Audio error code:', audio.error?.code);
+      console.error('Player: Audio error message:', audio.error?.message);
+    };
+
+    const handlePlay = () => console.log('Player: Play event triggered');
+    const handlePause = () => console.log('Player: Pause event triggered');
 
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('error', handleError);
+    audio.addEventListener('play', handlePlay);
+    audio.addEventListener('pause', handlePause);
 
     return () => {
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('error', handleError);
+      audio.removeEventListener('play', handlePlay);
+      audio.removeEventListener('pause', handlePause);
     };
-  }, [dispatch, isDragging]);
+  }, [dispatch, isDragging, currentTrack]); // Added currentTrack to dependencies
 
-  const handleTrackClick = (track: Track) => {
-    if (currentTrack?.id === track.id) {
-      dispatch(togglePlayPause());
+  React.useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !currentTrack) return;
+
+    console.log('Player: Effect triggered. isPlaying:', isPlaying);
+    audio.load();
+    if (isPlaying) {
+      console.log('Player: Attempting to play...');
+      audio.play().catch((err) => {
+        console.error('Player: Playback failed:', err);
+      });
     } else {
-      dispatch(setCurrentTrack({
-        ...track,
-        isPlaying: true,
-        progress: 0
-      }));
+      console.log('Player: Pausing...');
+      audio.pause();
     }
-  };
+  }, [isPlaying, currentTrack?.id]);
 
   const handleProgressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const audio = audioRef.current;
@@ -87,9 +113,6 @@ export const Player: React.FC<PlayerProps> = ({ tracks }) => {
       </div>
     );
   }
-
-  const duration = audioRef.current?.duration || 0;
-  const progress = (currentTime / duration) * 100;
 
   return (
     <div className="w-full p-6 bg-gradient-to-r from-primary-600 to-purple-700 rounded-2xl shadow-xl">
@@ -143,7 +166,7 @@ export const Player: React.FC<PlayerProps> = ({ tracks }) => {
         <input
           type="range"
           min={0}
-          max={duration}
+          max={duration || 0}
           value={currentTime}
           onChange={handleProgressChange}
           className="w-full h-2 bg-white/20 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg"
@@ -156,6 +179,7 @@ export const Player: React.FC<PlayerProps> = ({ tracks }) => {
       </div>
 
       <audio
+        key={currentTrack.id}
         ref={audioRef}
         src={currentTrack.file_path}
         preload="metadata"

@@ -5,7 +5,7 @@ node_modules/
 *.log
 .DS_Store
 uploads/
-database/*.db
+database/
 dist/
 build/
 .vscode/

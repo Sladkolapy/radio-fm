@@ -1,4 +1,4 @@
-import type { Track } from '../../types';
+import type { Track } from '@shared/types';
 
 export const moodColors: Record<Track['mood_type'], string> = {
   focus: 'bg-blue-100 text-blue-700',

@@ -1,15 +1,15 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import authReducer from '@features/auth/store/authSlice';
 import musicReducer from '@features/music/store/musicSlice';
-import { authMiddleware } from '@features/auth/middleware/authMiddleware';
+import adminReducer from '@features/admin/store/adminSlice';
 
 const rootReducer = combineReducers({
   auth: authReducer,
   music: musicReducer,
+  admin: adminReducer,
 });
 
-// Initialize state from localStorage on app load
-const initialState = () => {
+const preloadedState = () => {
   const token = localStorage.getItem('token');
   if (token) {
     return {
@@ -26,10 +26,8 @@ const initialState = () => {
 
 export const store = configureStore({
   reducer: rootReducer,
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(authMiddleware),
-  preloadedState: initialState()
+  preloadedState: preloadedState()
 });
 
-export type RootState = ReturnType<typeof store.getState>;
+export type RootState = ReturnType<typeof rootReducer>;
 export type AppDispatch = typeof store.dispatch;

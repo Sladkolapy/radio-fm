@@ -10,7 +10,6 @@ interface MoodOption {
 interface MoodSelectorProps {
   selectedMood: string;
   onMoodChange: (mood: string) => void;
-  isCreating?: boolean;
 }
 
 const moodOptions: MoodOption[] = [
@@ -23,8 +22,7 @@ const moodOptions: MoodOption[] = [
 
 export const MoodSelector: React.FC<MoodSelectorProps> = ({
   selectedMood,
-  onMoodChange,
-  isCreating = false
+  onMoodChange
 }) => {
   return (
     <div className="flex flex-wrap gap-3">

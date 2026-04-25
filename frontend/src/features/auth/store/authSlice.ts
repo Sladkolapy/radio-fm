@@ -1,13 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { authApi } from '@shared/api/axiosClient';
-import type { User } from '@shared/types';
-
-interface AuthState {
-  user: User | null;
-  token?: string | null;
-  isLoading: boolean;
-  error: string | null;
-}
+import type { User, AuthState } from '@shared/types';
 
 const initialState: AuthState = {
   user: null,
@@ -22,7 +15,7 @@ export const register = createAsyncThunk(
     try {
       const response = await authApi.register(userData.username, userData.password);
       localStorage.setItem('token', response.token);
-      return response.user;
+      return response;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.error || 'Registration failed');
     }
@@ -33,33 +26,12 @@ export const login = createAsyncThunk(
   'auth/login',
   async (userData: { username: string; password: string }, { rejectWithValue }) => {
     try {
-      console.log('login: Attempting login...');
       const response = await authApi.login(userData.username, userData.password);
       localStorage.setItem('token', response.token);
-      console.log('login: Login successful, token saved');
-      return response.user;
+      return response;
     } catch (error: any) {
-      console.error('login: Login failed:', error);
       return rejectWithValue(error.response?.data?.error || 'Login failed');
     }
-  }
-);
-
-export const getProfile = createAsyncThunk(
-  'auth/getProfile',
-  async () => {
-    console.log('getProfile: Fetching profile...');
-    const response = await authApi.getProfile();
-    console.log('getProfile: Profile fetched successfully:', response.user);
-    return response.user;
-  }
-);
-
-export const logout = createAsyncThunk(
-  'auth/logout',
-  async () => {
-    console.log('logout: Clearing token from localStorage');
-    localStorage.removeItem('token');
   }
 );
 
@@ -67,17 +39,22 @@ export const checkAuth = createAsyncThunk(
   'auth/checkAuth',
   async () => {
     const token = localStorage.getItem('token');
-    if (!token) {
-      return null;
-    }
+    if (!token) return null;
 
     try {
-      const user = await authApi.getProfile();
-      return user;
+      const response = await authApi.getProfile();
+      return { user: response.user, token };
     } catch (error) {
       localStorage.removeItem('token');
       return null;
     }
+  }
+);
+
+export const logout = createAsyncThunk(
+  'auth/logout',
+  async () => {
+    localStorage.removeItem('token');
   }
 );
 
@@ -100,8 +77,8 @@ export const authSlice = createSlice({
       })
       .addCase(register.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.user = action.payload;
-        state.token = localStorage.getItem('token');
+        state.user = action.payload.user;
+        state.token = action.payload.token;
         state.error = null;
       })
       .addCase(register.rejected, (state, action) => {
@@ -114,8 +91,8 @@ export const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.user = action.payload;
-        state.token = localStorage.getItem('token');
+        state.user = action.payload.user;
+        state.token = action.payload.token;
         state.error = null;
       })
       .addCase(login.rejected, (state, action) => {
@@ -133,27 +110,16 @@ export const authSlice = createSlice({
       .addCase(checkAuth.fulfilled, (state, action) => {
         state.isLoading = false;
         if (action.payload) {
-          state.user = action.payload;
-          state.token = localStorage.getItem('token');
+          state.user = action.payload.user;
+          state.token = action.payload.token;
+        } else {
+          state.user = null;
+          state.token = null;
         }
       })
       .addCase(checkAuth.rejected, (state) => {
         state.isLoading = false;
-        state.token = null;
-      })
-      .addCase(getProfile.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(getProfile.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.user = action.payload;
-        const token = localStorage.getItem('token');
-        if (token) {
-          state.token = token;
-        }
-      })
-      .addCase(getProfile.rejected, (state) => {
-        state.isLoading = false;
+        state.user = null;
         state.token = null;
       });
   },
