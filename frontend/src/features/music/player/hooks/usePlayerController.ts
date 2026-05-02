@@ -142,6 +142,7 @@ export function usePlayerController(): PlayerViewProps {
         setCurrentTime(ct);
         setDuration(dur);
       },
+      onDurationChange: setDuration,
       onEnded: () => {
         commands.next();
       },
