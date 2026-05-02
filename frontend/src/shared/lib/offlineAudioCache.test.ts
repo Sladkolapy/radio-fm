@@ -100,6 +100,18 @@ describe('offlineAudioCache', () => {
   });
 
   it('getCachedAudioObjectUrl returns blob URL when cached', async () => {
+    if (typeof URL.createObjectURL !== 'function') {
+      Object.defineProperty(URL, 'createObjectURL', {
+        value: () => 'blob:http://localhost/mock',
+        configurable: true
+      });
+    }
+    if (typeof URL.revokeObjectURL !== 'function') {
+      Object.defineProperty(URL, 'revokeObjectURL', {
+        value: () => {},
+        configurable: true
+      });
+    }
     const cache = createCacheMock();
     const url = `${window.location.origin}/uploads/c.mp3`;
     cache.store.set(url, new Response(new Blob(['abc']), { status: 200 }));
