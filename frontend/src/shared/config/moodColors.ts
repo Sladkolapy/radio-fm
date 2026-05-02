@@ -1,11 +1,11 @@
 import type { Track } from '@shared/types';
 
 export const moodColors: Record<Track['mood_type'], string> = {
-  focus: 'bg-blue-100 text-blue-700',
-  energy: 'bg-orange-100 text-orange-700',
-  calm: 'bg-green-100 text-green-700',
-  motivation: 'bg-red-100 text-red-700',
-  relax: 'bg-purple-100 text-purple-700'
+  focus: 'bg-sky-500/20 text-sky-300',
+  energy: 'bg-orange-500/20 text-orange-300',
+  calm: 'bg-emerald-500/20 text-emerald-300',
+  motivation: 'bg-red-500/20 text-red-300',
+  relax: 'bg-violet-500/20 text-violet-300'
 };
 
 export const moodNames: Record<Track['mood_type'], string> = {
@@ -17,6 +17,6 @@ export const moodNames: Record<Track['mood_type'], string> = {
 };
 
 export const getMoodInfo = (moodType: Track['mood_type']) => ({
-  color: moodColors[moodType] || 'bg-gray-100 text-gray-700',
+  color: moodColors[moodType] || 'bg-white/10 text-slate-300',
   name: moodNames[moodType] || moodType
 });

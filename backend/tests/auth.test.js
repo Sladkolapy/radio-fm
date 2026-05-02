@@ -3,50 +3,86 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const path = require('path');
-const db = require('../../config/db');
-const { authMiddleware } = require('../../middleware/auth');
+const db = require('../config/db');
+const { authMiddleware } = require('../middleware/auth');
 require('dotenv').config();
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const authController = require('../../controllers/authController');
-const trackController = require('../../controllers/trackController');
+const authController = require('../controllers/authController');
+const trackController = require('../controllers/trackController');
 
 app.post('/api/auth/register', authController.register);
 app.post('/api/auth/login', authController.login);
 app.get('/api/auth/profile', authMiddleware, authController.getProfile);
 
-let dbPath = path.join(__dirname, '../../database/music.db');
+const sqlite3 = require('sqlite3').verbose();
+const dbPath = path.join(__dirname, '../database/music.db');
 const dbInstance = new sqlite3.Database(dbPath);
-let testUser = null;
+
+function dbRun(db, sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.run(sql, params, function onRun(err) {
+      if (err) reject(err);
+      else resolve({ lastID: this.lastID });
+    });
+  });
+}
+
+function dbGet(db, sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.get(sql, params, (err, row) => {
+      if (err) reject(err);
+      else resolve(row);
+    });
+  });
+}
+
 let adminToken = null;
 let regularUserToken = null;
 let regularUserId = null;
 
 beforeAll(async () => {
-  await dbInstance.serialize(async () => {
-    await dbInstance.run('DELETE FROM users');
-    await dbInstance.run('DELETE FROM tracks');
-    await dbInstance.run('DELETE FROM user_tracks');
-    
-    const passwordHash = await bcrypt.hash('password123', 10);
-    await dbInstance.run('INSERT INTO users (username, password_hash) VALUES (?, ?)', ['admin', passwordHash]);
-    await dbInstance.run('INSERT INTO users (username, password_hash) VALUES (?, ?)', ['testuser', passwordHash]);
-    
-    await dbInstance.all('SELECT * FROM users', (err, users) => {
-      adminToken = jwt.sign({ userId: users[0].id, username: users[0].username }, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '24h' });
-      regularUserToken = jwt.sign({ userId: users[1].id, username: users[1].username }, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '24h' });
-      regularUserId = users[1].id;
-    });
-  });
-});
+  const jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
+  await dbRun(dbInstance, 'DELETE FROM track_tags');
+  await dbRun(dbInstance, 'DELETE FROM user_tracks');
+  await dbRun(dbInstance, 'DELETE FROM tracks');
+  await dbRun(dbInstance, 'DELETE FROM users WHERE username IN (?, ?, ?, ?)', [
+    'admin',
+    'testuser',
+    'newuser',
+    'integrationuser'
+  ]);
 
-afterEach(async () => {
-  await dbInstance.run('DELETE FROM users');
-  await dbInstance.run('DELETE FROM tracks');
-  await dbInstance.run('DELETE FROM user_tracks');
+  const adminHash = await bcrypt.hash('admin123', 10);
+  const userHash = await bcrypt.hash('password123', 10);
+  await dbRun(dbInstance, 'INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)', [
+    'admin',
+    adminHash,
+    'admin'
+  ]);
+  await dbRun(dbInstance, 'INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)', [
+    'testuser',
+    userHash,
+    'user'
+  ]);
+
+  const adminRow = await dbGet(dbInstance, 'SELECT id FROM users WHERE username = ?', ['admin']);
+  const userRow = await dbGet(dbInstance, 'SELECT id FROM users WHERE username = ?', ['testuser']);
+
+  adminToken = jwt.sign(
+    { userId: adminRow.id, username: 'admin', role: 'admin' },
+    jwtSecret,
+    { expiresIn: '24h' }
+  );
+  regularUserToken = jwt.sign(
+    { userId: userRow.id, username: 'testuser', role: 'user' },
+    jwtSecret,
+    { expiresIn: '24h' }
+  );
+  regularUserId = userRow.id;
 });
 
 afterAll(() => {

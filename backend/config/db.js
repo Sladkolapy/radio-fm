@@ -74,9 +74,12 @@ function initializeDatabase() {
       }
     });
 
-    seedAdminUser();
-    seedTags();
-    seedSampleTracks();
+    // Avoid racing integration tests that manage users/tracks (Jest sets JEST_WORKER_ID).
+    if (process.env.JEST_WORKER_ID === undefined) {
+      seedAdminUser();
+      seedTags();
+      seedSampleTracks();
+    }
   });
 }
 

@@ -95,50 +95,50 @@ const EditTrackPage: React.FC = () => {
 
   if (!track && !error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-app">
+        <div className="text-lg text-slate-300">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-primary-50">
+    <div className="min-h-screen bg-app text-white">
       <div className="max-w-2xl mx-auto p-4 md:p-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Edit Track</h1>
-            <p className="text-gray-600">Update track information</p>
+            <h1 className="text-3xl font-bold text-white">Edit Track</h1>
+            <p className="text-slate-400">Update track information</p>
           </div>
           <button
             onClick={() => navigate('/music')}
-            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors text-sm font-medium"
+            className="px-4 py-2 bg-surface border border-white/15 hover:bg-white/5 text-white rounded-lg transition-colors text-sm font-medium"
           >
             Back
           </button>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+          <div className="mb-4 p-3 bg-red-950/50 border border-red-500/40 text-red-200 rounded-lg">
             {error}
           </div>
         )}
 
         {track && (
-          <form onSubmit={handleSubmit} className="space-y-6 bg-white rounded-2xl shadow-lg p-6">
-            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+          <form onSubmit={handleSubmit} className="space-y-6 bg-surface border border-white/10 rounded-2xl p-6">
+            <div className="flex items-center gap-4 p-4 bg-app/80 rounded-lg border border-white/10">
               <img
                 src={track.cover_url || 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100'}
                 alt={track.title}
                 className="w-20 h-20 rounded-lg object-cover"
               />
               <div className="flex-1">
-                <h2 className="text-lg font-semibold text-gray-900">{track.title}</h2>
-                <p className="text-sm text-gray-600">{track.artist}</p>
+                <h2 className="text-lg font-semibold text-white">{track.title}</h2>
+                <p className="text-sm text-slate-400">{track.artist}</p>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Title *</label>
               <Input
                 type="text"
                 placeholder="Enter track title"
@@ -149,7 +149,7 @@ const EditTrackPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Artist *</label>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Artist *</label>
               <Input
                 type="text"
                 placeholder="Enter artist name"
@@ -160,11 +160,11 @@ const EditTrackPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Mood Type</label>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Mood Type</label>
               <select
                 value={moodType}
                 onChange={(e) => setMoodType(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="select-field"
               >
                 {moodTypes.map((type) => (
                   <option key={type} value={type}>
@@ -176,7 +176,7 @@ const EditTrackPage: React.FC = () => {
 
             {tags.length > 0 && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tags</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Tags</label>
                 <TagSelector
                   tags={tags}
                   selectedTagIds={selectedTagIds}

@@ -25,11 +25,11 @@ export const TagSelector: React.FC<TagSelectorProps> = ({ tags, selectedTagIds, 
           onClick={() => handleToggle(tag.id)}
           className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
             selectedTagIds.includes(tag.id)
-              ? 'text-white'
-              : 'text-gray-700 hover:opacity-80'
+              ? 'text-app'
+              : 'text-slate-200 hover:opacity-90'
           }`}
           style={{
-            backgroundColor: selectedTagIds.includes(tag.id) ? tag.color : `${tag.color}20`,
+            backgroundColor: selectedTagIds.includes(tag.id) ? tag.color : `${tag.color}33`,
           }}
         >
           {tag.name}

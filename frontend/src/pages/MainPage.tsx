@@ -39,39 +39,39 @@ const MainPage: React.FC = () => {
     : filteredTracks;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-primary-50">
+    <div className="min-h-screen bg-app text-white">
       <div className="max-w-6xl mx-auto p-4 md:p-8">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">PingMusic</h1>
-            <p className="text-gray-600">Browse and play your favorite tracks</p>
+            <h1 className="text-3xl font-bold text-white">PingMusic</h1>
+            <p className="text-slate-400">Browse and play your favorite tracks</p>
           </div>
 
           {isAuthenticated ? (
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-3">
               <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">{user?.username}</p>
-                <p className="text-xs text-gray-500">
+                <p className="text-sm font-medium text-white">{user?.username}</p>
+                <p className="text-xs text-slate-500">
                   {user?.role === 'admin' ? 'Administrator' : 'Music Lover'}
                 </p>
               </div>
               {user?.role === 'admin' && (
                 <button
                   onClick={() => navigate('/admin')}
-                  className="px-4 py-2 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded-lg transition-colors text-sm font-medium"
+                  className="px-4 py-2 border border-primary-500/40 hover:bg-primary-500/10 text-primary-400 rounded-lg transition-colors text-sm font-medium"
                 >
                   Admin
                 </button>
               )}
               <button
                 onClick={() => navigate('/music/new')}
-                className="px-4 py-2 bg-primary-100 hover:bg-primary-200 text-primary-700 rounded-lg transition-colors text-sm font-medium"
+                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-app rounded-lg transition-colors text-sm font-medium"
               >
                 Add Track
               </button>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors text-sm font-medium"
+                className="px-4 py-2 border border-red-500/40 hover:bg-red-950/40 text-red-300 rounded-lg transition-colors text-sm font-medium"
               >
                 Logout
               </button>
@@ -80,13 +80,13 @@ const MainPage: React.FC = () => {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => navigate('/login')}
-                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors text-sm font-medium"
+                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-app rounded-lg transition-colors text-sm font-medium"
               >
                 Sign In
               </button>
               <button
                 onClick={() => navigate('/register')}
-                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors text-sm font-medium"
+                className="px-4 py-2 bg-surface border border-white/15 hover:bg-white/5 text-white rounded-lg transition-colors text-sm font-medium"
               >
                 Sign Up
               </button>
@@ -100,13 +100,13 @@ const MainPage: React.FC = () => {
           <div className="flex gap-4">
             <button
               onClick={() => setActiveTab('all')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'all' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'all' ? 'bg-primary-600 text-app' : 'bg-surface border border-white/10 text-slate-300 hover:border-white/20'}`}
             >
               All Tracks
             </button>
             <button
               onClick={() => setActiveTab('offline')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'offline' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'offline' ? 'bg-primary-600 text-app' : 'bg-surface border border-white/10 text-slate-300 hover:border-white/20'}`}
             >
               Offline ({cachedTrackIds.length})
             </button>
@@ -120,8 +120,8 @@ const MainPage: React.FC = () => {
             />
           )}
 
-          <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">
+          <div className="bg-surface rounded-2xl border border-white/10 p-6 shadow-xl">
+            <h2 className="text-xl font-bold text-white mb-6">
               {activeTab === 'offline'
                 ? 'Offline Tracks'
                 : (selectedTagId
@@ -130,20 +130,20 @@ const MainPage: React.FC = () => {
             </h2>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+              <div className="mb-4 p-3 bg-red-950/50 border border-red-500/40 text-red-200 rounded-lg">
                 {error}
               </div>
             )}
 
             {activeTab === 'all' && (
-              <p className="text-sm text-gray-600 mb-4 p-3 bg-primary-50/80 border border-primary-100 rounded-lg">
-                <span className="font-medium text-primary-800">Оффлайн:</span> нажмите иконку загрузки у трека, чтобы
+              <p className="text-sm text-slate-300 mb-4 p-3 bg-app/80 border border-white/10 rounded-lg">
+                <span className="font-medium text-primary-400">Оффлайн:</span> нажмите иконку загрузки у трека, чтобы
                 сохранить его в этом браузере и слушать без сети. Повторное нажатие убирает трек из кэша.
               </p>
             )}
 
             {activeTab === 'offline' && displayTracks.length === 0 && !isLoading ? (
-              <p className="text-center text-gray-500 py-10">
+              <p className="text-center text-slate-500 py-10">
                 {cachedTrackIds.length === 0
                   ? 'Пока нет сохранённых треков. Откройте вкладку «All Tracks» и нажмите кнопку с иконкой загрузки напротив трека.'
                   : 'Нет оффлайн-треков в текущем фильтре. Сбросьте тег на вкладке «All Tracks» или сохраните другие треки.'}

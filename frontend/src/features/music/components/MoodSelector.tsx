@@ -33,8 +33,8 @@ export const MoodSelector: React.FC<MoodSelectorProps> = ({
           className={cn(
             'flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-all duration-200',
             selectedMood === mood.value
-              ? 'border-primary-500 bg-primary-50 text-primary-700'
-              : 'border-gray-200 hover:border-primary-300 bg-white'
+              ? 'border-primary-500 bg-primary-500/15 text-primary-300'
+              : 'border-white/10 hover:border-primary-500/50 bg-app text-slate-200'
           )}
         >
           <span className="text-2xl">{mood.icon}</span>

@@ -25,8 +25,8 @@ const App: React.FC = () => {
 
   if (isLoading && localStorage.getItem('token')) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-lg text-gray-600">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-app">
+        <div className="text-lg text-slate-300">Loading...</div>
       </div>
     );
   }

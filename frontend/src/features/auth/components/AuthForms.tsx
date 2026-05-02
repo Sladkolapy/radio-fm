@@ -7,8 +7,8 @@ import { login, register } from '@features/auth/store/authSlice';
 
 const AuthLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-600 to-purple-700 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+    <div className="min-h-screen bg-app flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-surface border border-white/10 rounded-2xl shadow-xl p-8">
         {children}
       </div>
     </div>
@@ -30,12 +30,12 @@ const LoginForm: React.FC = () => {
   return (
     <AuthLayout>
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-        <p className="text-gray-600">Sign in to continue to PingMusic</p>
+        <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
+        <p className="text-slate-400">Sign in to continue to PingMusic</p>
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+        <div className="mb-4 p-3 bg-red-950/50 border border-red-500/40 text-red-200 rounded-lg">
           {error}
         </div>
       )}
@@ -70,9 +70,9 @@ const LoginForm: React.FC = () => {
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-gray-600">
+      <p className="mt-6 text-center text-slate-400">
         Don't have an account?{' '}
-        <Link to="/register" className="text-primary-600 hover:text-primary-700 font-semibold">
+        <Link to="/register" className="text-primary-400 hover:text-primary-300 font-semibold">
           Sign Up
         </Link>
       </p>
@@ -95,12 +95,12 @@ const RegisterForm: React.FC = () => {
   return (
     <AuthLayout>
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
-        <p className="text-gray-600">Join PingMusic today</p>
+        <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
+        <p className="text-slate-400">Join PingMusic today</p>
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+        <div className="mb-4 p-3 bg-red-950/50 border border-red-500/40 text-red-200 rounded-lg">
           {error}
         </div>
       )}
@@ -136,9 +136,9 @@ const RegisterForm: React.FC = () => {
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-gray-600">
+      <p className="mt-6 text-center text-slate-400">
         Already have an account?{' '}
-        <Link to="/login" className="text-primary-600 hover:text-primary-700 font-semibold">
+        <Link to="/login" className="text-primary-400 hover:text-primary-300 font-semibold">
           Sign In
         </Link>
       </p>

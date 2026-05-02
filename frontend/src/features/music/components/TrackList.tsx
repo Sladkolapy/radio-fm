@@ -81,14 +81,14 @@ export const TrackList: React.FC<TrackListProps> = ({
       {isAdmin && onCreateTrack && (
         <button
           onClick={onCreateTrack}
-          className="flex items-center gap-2 px-4 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl transition-colors"
+          className="flex items-center gap-2 px-4 py-3 bg-primary-600 hover:bg-primary-700 text-app rounded-xl transition-colors"
         >
           <span>Add New Track</span>
         </button>
       )}
 
       {tracks.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-slate-500">
           <p>No tracks available</p>
         </div>
       ) : (
@@ -98,8 +98,8 @@ export const TrackList: React.FC<TrackListProps> = ({
               key={track.id}
               onClick={() => handleTrackClick(track)}
               className={cn(
-                'flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer group',
-                currentTrack?.id === track.id && 'ring-2 ring-primary-500 bg-primary-50'
+                'flex items-center gap-4 p-4 bg-app/60 rounded-xl border border-white/5 hover:border-white/15 transition-all cursor-pointer group',
+                currentTrack?.id === track.id && 'ring-2 ring-primary-500 bg-primary-500/10 border-primary-500/30'
               )}
             >
               <div className="relative">
@@ -116,19 +116,19 @@ export const TrackList: React.FC<TrackListProps> = ({
               </div>
 
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-gray-900 truncate">
+                <h3 className="font-semibold text-white truncate">
                   {track.title}
                 </h3>
-                <p className="text-sm text-gray-600 truncate">{track.artist}</p>
+                <p className="text-sm text-slate-400 truncate">{track.artist}</p>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                   <span className={cn(
                     'text-xs px-2 py-1 rounded-full',
-                    moodColors[track.mood_type] || 'bg-gray-100 text-gray-700'
+                    moodColors[track.mood_type] || 'bg-white/10 text-slate-300'
                   )}>
                     {track.mood_type}
                   </span>
                   {cachedTrackIds.includes(track.id) && (
-                    <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 font-medium">
+                    <span className="text-xs px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-medium">
                       Offline
                     </span>
                   )}
@@ -152,8 +152,8 @@ export const TrackList: React.FC<TrackListProps> = ({
                   className={cn(
                     'p-2 rounded-lg transition-colors flex items-center justify-center min-w-[2.25rem]',
                     cachedTrackIds.includes(track.id)
-                      ? 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100'
-                      : 'text-gray-600 bg-gray-50 hover:bg-green-50 hover:text-green-700 border border-gray-200',
+                      ? 'text-emerald-300 bg-emerald-500/15 hover:bg-emerald-500/25'
+                      : 'text-slate-300 bg-white/5 hover:bg-primary-500/15 hover:text-primary-300 border border-white/10',
                     offlineBusyId === track.id && 'opacity-70 cursor-wait'
                   )}
                   title={
@@ -177,12 +177,12 @@ export const TrackList: React.FC<TrackListProps> = ({
                 </button>
 
                 {(isAdmin || isAuthenticated) && (
-                  <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity border-l border-gray-200 pl-1 sm:pl-2 ml-0 sm:ml-1">
+                  <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity border-l border-white/10 pl-1 sm:pl-2 ml-0 sm:ml-1">
                     {isAdmin && onDeleteTrack && (
                       <button
                         type="button"
                         onClick={(e) => handleDelete(e, track.id)}
-                        className="p-2 hover:bg-red-100 hover:text-red-600 rounded-lg transition-colors"
+                        className="p-2 hover:bg-red-500/20 hover:text-red-300 rounded-lg transition-colors text-slate-400"
                         aria-label="Удалить трек"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -192,7 +192,7 @@ export const TrackList: React.FC<TrackListProps> = ({
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); onEditTrack(track.id); }}
-                        className="p-2 hover:bg-blue-100 hover:text-blue-700 rounded-lg transition-colors"
+                        className="p-2 hover:bg-primary-500/15 hover:text-primary-300 rounded-lg transition-colors text-slate-400"
                         aria-label="Редактировать"
                       >
                         <Edit className="w-4 h-4" />

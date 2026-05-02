@@ -68,30 +68,30 @@ const CreateTrackPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-primary-50">
+    <div className="min-h-screen bg-app text-white">
       <div className="max-w-2xl mx-auto p-4 md:p-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Create New Track</h1>
-            <p className="text-gray-600">Add a new track to your music library</p>
+            <h1 className="text-3xl font-bold text-white">Create New Track</h1>
+            <p className="text-slate-400">Add a new track to your music library</p>
           </div>
           <button
             onClick={() => navigate('/music')}
-            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors text-sm font-medium"
+            className="px-4 py-2 bg-surface border border-white/15 hover:bg-white/5 text-white rounded-lg transition-colors text-sm font-medium"
           >
             Back
           </button>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+          <div className="mb-4 p-3 bg-red-950/50 border border-red-500/40 text-red-200 rounded-lg">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6 bg-white rounded-2xl shadow-lg p-6">
+        <form onSubmit={handleSubmit} className="space-y-6 bg-surface border border-white/10 rounded-2xl p-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+            <label className="block text-sm font-medium text-slate-300 mb-2">Title *</label>
             <Input
               type="text"
               placeholder="Enter track title"
@@ -102,7 +102,7 @@ const CreateTrackPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Artist *</label>
+            <label className="block text-sm font-medium text-slate-300 mb-2">Artist *</label>
             <Input
               type="text"
               placeholder="Enter artist name"
@@ -113,11 +113,11 @@ const CreateTrackPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Mood Type</label>
+            <label className="block text-sm font-medium text-slate-300 mb-2">Mood Type</label>
             <select
               value={moodType}
               onChange={(e) => setMoodType(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="select-field"
             >
               {moodTypes.map((type) => (
                 <option key={type} value={type}>
@@ -129,7 +129,7 @@ const CreateTrackPage: React.FC = () => {
 
           {tags.length > 0 && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Tags</label>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Tags</label>
               <TagSelector
                 tags={tags}
                 selectedTagIds={selectedTagIds}
@@ -139,37 +139,25 @@ const CreateTrackPage: React.FC = () => {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Audio File *</label>
+            <label className="block text-sm font-medium text-slate-300 mb-2">Audio File *</label>
             <input
               type="file"
               name="audio"
               accept="audio/*"
               onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
-              className="block w-full text-sm text-gray-500
-                file:mr-4 file:py-2 file:px-4
-                file:rounded-lg file:border-0
-                file:text-sm file:font-semibold
-                file:bg-primary-50 file:text-primary-700
-                hover:file:bg-primary-100
-              "
+              className="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-600 file:text-app hover:file:bg-primary-700"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Cover Image (optional)</label>
+            <label className="block text-sm font-medium text-slate-300 mb-2">Cover Image (optional)</label>
             <input
               type="file"
               name="cover"
               accept="image/*"
               onChange={(e) => setCoverFile(e.target.files?.[0] || null)}
-              className="block w-full text-sm text-gray-500
-                file:mr-4 file:py-2 file:px-4
-                file:rounded-lg file:border-0
-                file:text-sm file:font-semibold
-                file:bg-purple-50 file:text-purple-700
-                hover:file:bg-purple-100
-              "
+              className="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-violet-600/80 file:text-white hover:file:bg-violet-600"
             />
           </div>
 

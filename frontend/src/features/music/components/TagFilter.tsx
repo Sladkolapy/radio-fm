@@ -9,15 +9,15 @@ interface TagFilterProps {
 
 export const TagFilter: React.FC<TagFilterProps> = ({ tags, selectedTagId, onTagSelect }) => {
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-4">
-      <h3 className="text-sm font-semibold text-gray-700 mb-3">Filter by tag</h3>
+    <div className="bg-surface rounded-2xl border border-white/10 p-4">
+      <h3 className="text-sm font-semibold text-slate-300 mb-3">Filter by tag</h3>
       <div className="flex flex-wrap gap-2">
         <button
           onClick={() => onTagSelect(null)}
           className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
             selectedTagId === null
-              ? 'bg-gray-800 text-white'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              ? 'bg-primary-600 text-app'
+              : 'bg-white/5 text-slate-400 hover:bg-white/10 border border-white/10'
           }`}
         >
           All
@@ -28,11 +28,11 @@ export const TagFilter: React.FC<TagFilterProps> = ({ tags, selectedTagId, onTag
             onClick={() => onTagSelect(selectedTagId === tag.id ? null : tag.id)}
             className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
               selectedTagId === tag.id
-                ? 'text-white'
-                : 'text-gray-700 hover:opacity-80'
+                ? 'text-app'
+                : 'text-slate-200 hover:opacity-90'
             }`}
             style={{
-              backgroundColor: selectedTagId === tag.id ? tag.color : `${tag.color}20`,
+              backgroundColor: selectedTagId === tag.id ? tag.color : `${tag.color}33`,
             }}
           >
             {tag.name}

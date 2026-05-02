@@ -4,10 +4,10 @@ export default function Badge({
   className = ''
 }: { children: React.ReactNode; variant?: 'default' | 'success' | 'warning' | 'error'; className?: string }) {
   const variants = {
-    default: 'bg-white/10 text-gray-300',
-    success: 'bg-green-500/20 text-green-400',
-    warning: 'bg-yellow-500/20 text-yellow-400',
-    error: 'bg-red-500/20 text-red-400'
+    default: 'bg-white/10 text-slate-200',
+    success: 'bg-emerald-500/20 text-emerald-300',
+    warning: 'bg-amber-500/20 text-amber-300',
+    error: 'bg-red-500/20 text-red-300'
   };
 
   return (

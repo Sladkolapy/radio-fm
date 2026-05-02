@@ -16,13 +16,15 @@ export const Button: React.FC<ButtonProps> = ({
   className,
   ...props
 }) => {
-  const baseStyles = 'rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
+  const baseStyles =
+    'rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-app';
 
   const variants = {
-    primary: 'bg-primary-600 hover:bg-primary-700 text-white focus:ring-primary-500',
-    secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-900 focus:ring-gray-500',
+    primary: 'bg-primary-600 hover:bg-primary-700 text-app focus:ring-primary-500',
+    secondary:
+      'bg-surface border border-white/15 hover:bg-white/5 text-white focus:ring-white/30',
     danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500',
-    success: 'bg-green-600 hover:bg-green-700 text-white focus:ring-green-500',
+    success: 'bg-emerald-600 hover:bg-emerald-700 text-white focus:ring-emerald-500',
   };
 
   const sizes = {
