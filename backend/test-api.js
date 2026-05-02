@@ -8,7 +8,7 @@ const path = require('path');
 const API_BASE_URL = 'http://localhost:3000/api';
 
 async function testAPI() {
-  console.log('🚀 Testing Music Player API\n');
+  console.log('🚀 Testing PingMusic API\n');
 
   try {
     // Test 1: Register new user

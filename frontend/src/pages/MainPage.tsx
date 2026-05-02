@@ -43,7 +43,7 @@ const MainPage: React.FC = () => {
       <div className="max-w-6xl mx-auto p-4 md:p-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Music Library</h1>
+            <h1 className="text-3xl font-bold text-gray-900">PingMusic</h1>
             <p className="text-gray-600">Browse and play your favorite tracks</p>
           </div>
 
@@ -95,7 +95,7 @@ const MainPage: React.FC = () => {
         </div>
 
         <div className="grid gap-6">
-          <Player tracks={displayTracks} />
+          <Player />
 
           <div className="flex gap-4">
             <button
@@ -135,11 +135,25 @@ const MainPage: React.FC = () => {
               </div>
             )}
 
-            <TrackList
-              tracks={displayTracks}
-              isAuthenticated={isAuthenticated}
-              isOfflineList={activeTab === 'offline'}
-            />
+            {activeTab === 'all' && (
+              <p className="text-sm text-gray-600 mb-4 p-3 bg-primary-50/80 border border-primary-100 rounded-lg">
+                <span className="font-medium text-primary-800">Оффлайн:</span> нажмите иконку загрузки у трека, чтобы
+                сохранить его в этом браузере и слушать без сети. Повторное нажатие убирает трек из кэша.
+              </p>
+            )}
+
+            {activeTab === 'offline' && displayTracks.length === 0 && !isLoading ? (
+              <p className="text-center text-gray-500 py-10">
+                {cachedTrackIds.length === 0
+                  ? 'Пока нет сохранённых треков. Откройте вкладку «All Tracks» и нажмите кнопку с иконкой загрузки напротив трека.'
+                  : 'Нет оффлайн-треков в текущем фильтре. Сбросьте тег на вкладке «All Tracks» или сохраните другие треки.'}
+              </p>
+            ) : (
+              <TrackList
+                tracks={displayTracks}
+                isAuthenticated={isAuthenticated}
+              />
+            )}
           </div>
         </div>
       </div>

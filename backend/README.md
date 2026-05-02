@@ -1,4 +1,4 @@
-# Music Player Backend
+# PingMusic Backend
 
 API сервер для музыкального плеера с локальным хранилищем.
 
@@ -18,7 +18,7 @@ npm run dev
 npm start
 ```
 
-Сервер запустится на http://localhost:3000
+Сервер слушает порт из `process.env.PORT` или **3000**. В **production** (`NODE_ENV=production`) Express отдаёт собранный фронтенд из `../frontend/dist` (соберите фронтенд заранее).
 
 ## Структура
 
@@ -44,3 +44,8 @@ npm start
 - `PUT /api/tracks/:id` - обновить трек (требуется токен)
 - `DELETE /api/tracks/:id` - удалить трек (требуется токен)
 - `GET /api/admin/tracks` - админ панель (требуется токен)
+
+### Теги
+- `GET /api/tags` - список тегов
+- `GET /api/tags/:id/tracks` - треки по тегу
+- операции создания/изменения/удаления тегов — см. [API_DOCUMENTATION.md](../API_DOCUMENTATION.md) (админ)

@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 
-console.log('🎵 Creating test tracks for Music Player...');
+console.log('🎵 Creating test tracks for PingMusic...');
 
 const testTrackNames = [
   { title: 'Morning Focus', artist: 'Morning Vibes', mood: 'focus' },

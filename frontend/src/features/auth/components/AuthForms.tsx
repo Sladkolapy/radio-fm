@@ -31,7 +31,7 @@ const LoginForm: React.FC = () => {
     <AuthLayout>
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-        <p className="text-gray-600">Sign in to continue to Music Player</p>
+        <p className="text-gray-600">Sign in to continue to PingMusic</p>
       </div>
 
       {error && (
@@ -96,7 +96,7 @@ const RegisterForm: React.FC = () => {
     <AuthLayout>
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
-        <p className="text-gray-600">Join Music Player today</p>
+        <p className="text-gray-600">Join PingMusic today</p>
       </div>
 
       {error && (

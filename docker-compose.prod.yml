@@ -1,0 +1,18 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET (e.g. in .env next to this file)}
+      NODE_ENV: production
+      PORT: 3000
+    volumes:
+      - music_db:/app/database
+      - music_uploads:/app/uploads
+
+volumes:
+  music_db:
+  music_uploads:

@@ -1,4 +1,4 @@
-# Music Player Frontend
+# PingMusic Frontend
 
 React + TypeScript + Vite + TailwindCSS музыкальный плеер.
 
@@ -44,6 +44,6 @@ npm run preview
 
 ## API интеграция
 
-Приложение подключается к API на http://localhost:3000
+Базовый путь запросов: **`/api`** (относительно origin страницы). В режиме `npm run dev` Vite проксирует `/api` и `/uploads` на backend (см. `vite.config.ts`). В production UI и API обычно с одного хоста (см. корневой README, раздел production).
 
-Токен авторизации хранится в localStorage и автоматически добавляется к запросам через axios interceptor.
+Токен авторизации хранится в `localStorage` и добавляется к запросам через axios interceptor.

@@ -1,7 +1,7 @@
 {
   "name": "music-player-backend",
   "version": "1.0.0",
-  "description": "Music player backend with local storage",
+  "description": "PingMusic backend with local storage",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

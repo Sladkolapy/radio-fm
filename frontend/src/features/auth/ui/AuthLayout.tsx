@@ -17,7 +17,7 @@ const AuthLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <div className="flex h-screen">
         <div className="w-64 bg-black/20 backdrop-blur-lg border-r border-white/10 p-6">
-          <h1 className="text-2xl font-bold text-white mb-8">Music Player</h1>
+          <h1 className="text-2xl font-bold text-white mb-8">PingMusic</h1>
 
           <nav className="space-y-2">
             <NavLink

@@ -49,27 +49,51 @@ my_music_player/
 
 ## Установка и запуск
 
-### Backend
+Первичная установка зависимостей (корень репозитория):
+
+```bash
+./setup.sh
+```
+
+Либо вручную: `npm install` в каталогах `backend` и `frontend`. Подробный пошаговый сценарий — в [QUICK_START.md](QUICK_START.md).
+
+### Разработка (два процесса)
+
+**Backend** — порт по умолчанию `3000` (переопределяется переменной `PORT` в `.env` в каталоге `backend`).
 
 ```bash
 cd backend
 npm install
-npm run dev      # Development mode
-npm start        # Production mode
+npm run dev      # nodemon
 ```
 
-Сервер запустится на http://localhost:3000
-
-### Frontend
+**Frontend** — Vite проксирует `/api` и `/uploads` на `http://localhost:3000` (см. `frontend/vite.config.ts`). Клиент ходит в API по относительному пути `/api`, а не на полный URL.
 
 ```bash
 cd frontend
 npm install
-npm run dev      # Development mode
-npm run build    # Production build
+npm run dev      # http://localhost:5173
 ```
 
-Приложение запустится на http://localhost:5173
+Сборка фронтенда без запуска сервера разработки:
+
+```bash
+cd frontend
+npm run build    # артефакты в frontend/dist
+npm run preview  # опционально: проверка production-сборки (порт см. в выводе Vite)
+```
+
+### Развёртывание на сервере (production)
+
+В production один процесс **Express** поднимается из каталога `backend` и, при `NODE_ENV=production`, отдаёт статику из `../frontend/dist` и API с того же хоста/порта (см. `backend/server.js`).
+
+1. Собрать фронтенд: `cd frontend && npm ci && npm run build`.
+2. В `backend` создать `.env` (образец — [backend/.env.example](backend/.env.example)): задать **JWT_SECRET** и при необходимости **PORT**.
+3. Запустить: `cd backend && NODE_ENV=production npm start`.
+
+Пользователи открывают одно приложение: `http://<хост>:<PORT>/` (API: `http://<хост>:<PORT>/api/...`).
+
+**Важно:** пути `uploads/` и `database/` на сервере должны быть доступны для записи процессу Node. Резервное копирование — как минимум каталог `backend/database` и `backend/uploads`.
 
 ## Функциональность
 
@@ -103,6 +127,11 @@ npm run build    # Production build
 - `DELETE /api/tracks/:id` - удалить трек (требуется токен)
 - `GET /api/admin/tracks` - админ панель (требуется токен)
 
+#### Теги
+- `GET /api/tags` - список тегов
+- `GET /api/tags/:id/tracks` - треки по тегу
+- `POST /api/tags`, `PUT /api/tags/:id`, `DELETE /api/tags/:id` - создание/изменение/удаление (токен + права администратора)
+
 ### Mood Types
 - `focus` - Фокус
 - `energy` - Энергичность
@@ -134,7 +163,7 @@ npm run build    # Production build
 
 1. Добавьте новый mood в массив moodOptions в `frontend/src/features/music/components/MoodSelector.tsx`
 2. Добавьте новый mood в массив moodTypes в `backend/controllers/trackController.js`
-3. Добавьте новый цвет в объект moodColors в `frontend/src/features/music/components/TrackList.tsx`
+3. Добавьте цвет в `frontend/src/shared/config/moodColors.ts` (тип `Track['mood_type']` при необходимости обновить в типах)
 
 ### Добавление нового трека через API
 

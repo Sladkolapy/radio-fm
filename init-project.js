@@ -6,7 +6,7 @@ console.log('🎨 Setting up initial project structure...');
 const structure = {
   'backend/.env': `PORT=3000
 JWT_SECRET=your-super-secret-jwt-key-change-this-in-production`,
-  'backend/README.md': `# Music Player Backend
+  'backend/README.md': `# PingMusic Backend
 
 API сервер для музыкального плеера с локальным хранилищем файлов.
 
@@ -35,7 +35,7 @@ API сервер для музыкального плеера с локальн�
 - DELETE /api/tracks/:id - удалить трек (требуется токен)
 - GET /api/admin/tracks - админ панель (требуется токен)`,
 
-  'frontend/README.md': `# Music Player Frontend
+  'frontend/README.md': `# PingMusic Frontend
 
 React + TypeScript + Vite музыкальный плеер.
 

@@ -1,16 +1,20 @@
-import React from 'react';
-import { PlayCircle, Trash2, Edit, Download, Trash } from 'lucide-react';
+import React, { useState } from 'react';
+import { PlayCircle, Trash2, Edit, Download, Loader2, CheckCircle2 } from 'lucide-react';
 import { cn } from '@shared/utils/cn';
 import { useAppDispatch, useAppSelector } from '@shared/hooks';
 import { setCurrentTrack, deleteTrack, addCachedTrack, removeCachedTrack } from '@features/music/store/musicSlice';
 import type { Track } from '@shared/types';
 import { moodColors } from '@shared/config/moodColors';
+import {
+  cacheAudioForOffline,
+  removeAudioFromCache,
+  isCacheApiAvailable
+} from '@shared/lib/offlineAudioCache';
 
 interface TrackListProps {
   tracks: Track[];
   isAuthenticated?: boolean;
   isAdmin?: boolean;
-  isOfflineList?: boolean;
   onCreateTrack?: () => void;
   onDeleteTrack?: (id: number) => void;
   onEditTrack?: (id: number) => void;
@@ -20,13 +24,13 @@ export const TrackList: React.FC<TrackListProps> = ({
   tracks,
   isAuthenticated = false,
   isAdmin = false,
-  isOfflineList = false,
   onCreateTrack,
   onDeleteTrack,
   onEditTrack
 }) => {
   const dispatch = useAppDispatch();
   const { currentTrack, cachedTrackIds } = useAppSelector((state) => state.music);
+  const [offlineBusyId, setOfflineBusyId] = useState<number | null>(null);
 
   const handleTrackClick = (track: Track) => {
     dispatch(setCurrentTrack({
@@ -36,34 +40,29 @@ export const TrackList: React.FC<TrackListProps> = ({
     }));
   };
 
-  const handleDownload = (e: React.MouseEvent, track: Track) => {
+  const handleSaveOrRemoveOffline = async (e: React.MouseEvent, track: Track) => {
     e.stopPropagation();
-    if ('caches' in window) {
-      caches.open('music-player-v1').then((cache) => {
-        cache.add(track.file_path || '').then(() => {
-          dispatch(addCachedTrack(track.id));
-          alert('Track downloaded for offline use');
-        }).catch(err => {
-          console.error('Download failed:', err);
-          alert('Download failed');
-        });
-      });
-    } else {
-      alert('Offline downloading is not supported in this browser');
-    }
-  };
+    const cached = cachedTrackIds.includes(track.id);
 
-  const handleRemoveOffline = (e: React.MouseEvent, track: Track) => {
-    e.stopPropagation();
-    if ('caches' in window) {
-        caches.open('music-player-v1').then((cache) => {
-            cache.delete(track.file_path || '').then(() => {
-                dispatch(removeCachedTrack(track.id));
-                alert('Track removed from offline cache');
-            }).catch(err => {
-                console.error('Removal failed:', err);
-            });
-        });
+    if (!isCacheApiAvailable()) {
+      window.alert('В этом браузере недоступно сохранение для оффлайна (нет Cache API).');
+      return;
+    }
+
+    setOfflineBusyId(track.id);
+    try {
+      if (cached) {
+        await removeAudioFromCache(track.file_path);
+        dispatch(removeCachedTrack(track.id));
+      } else {
+        await cacheAudioForOffline(track.file_path);
+        dispatch(addCachedTrack(track.id));
+      }
+    } catch (err) {
+      console.error('Offline cache:', err);
+      window.alert(cached ? 'Не удалось удалить из кэша' : 'Не удалось сохранить трек для оффлайна');
+    } finally {
+      setOfflineBusyId(null);
     }
   };
 
@@ -128,6 +127,11 @@ export const TrackList: React.FC<TrackListProps> = ({
                   )}>
                     {track.mood_type}
                   </span>
+                  {cachedTrackIds.includes(track.id) && (
+                    <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 font-medium">
+                      Offline
+                    </span>
+                  )}
                   {track.tags?.map(tag => (
                     <span
                       key={tag.id}
@@ -140,46 +144,63 @@ export const TrackList: React.FC<TrackListProps> = ({
                 </div>
               </div>
 
-              {(isAdmin || isAuthenticated) && (
-                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {isOfflineList ? (
-                    <button
-                      onClick={(e) => handleRemoveOffline(e, track)}
-                      className="p-2 hover:bg-red-100 hover:text-red-600 rounded-lg transition-colors"
-                      title="Remove from offline"
-                    >
-                      <Trash className="w-4 h-4" />
-                    </button>
-                  ) : isAuthenticated && (
-                    <button
-                      onClick={(e) => handleDownload(e, track)}
-                      className={cn(
-                        "p-2 rounded-lg transition-colors",
-                        cachedTrackIds.includes(track.id) ? "text-green-600 bg-green-50" : "hover:bg-green-100 hover:text-green-600"
-                      )}
-                      title="Download for offline"
-                    >
-                      <Download className="w-4 h-4" />
-                    </button>
+              <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={(e) => handleSaveOrRemoveOffline(e, track)}
+                  disabled={offlineBusyId === track.id}
+                  className={cn(
+                    'p-2 rounded-lg transition-colors flex items-center justify-center min-w-[2.25rem]',
+                    cachedTrackIds.includes(track.id)
+                      ? 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100'
+                      : 'text-gray-600 bg-gray-50 hover:bg-green-50 hover:text-green-700 border border-gray-200',
+                    offlineBusyId === track.id && 'opacity-70 cursor-wait'
                   )}
-                  {isAdmin && onDeleteTrack && (
-                    <button
-                      onClick={(e) => handleDelete(e, track.id)}
-                      className="p-2 hover:bg-red-100 hover:text-red-600 rounded-lg transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                  title={
+                    cachedTrackIds.includes(track.id)
+                      ? 'Удалить из оффлайн'
+                      : 'Сохранить для прослушивания без сети'
+                  }
+                  aria-label={
+                    cachedTrackIds.includes(track.id)
+                      ? 'Удалить из оффлайн'
+                      : 'Сохранить для оффлайна'
+                  }
+                >
+                  {offlineBusyId === track.id ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : cachedTrackIds.includes(track.id) ? (
+                    <CheckCircle2 className="w-5 h-5" />
+                  ) : (
+                    <Download className="w-5 h-5" />
                   )}
-                  {isAuthenticated && onEditTrack && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); onEditTrack(track.id); }}
-                      className="p-2 hover:bg-blue-100 hover:bg-blue-600 rounded-lg transition-colors"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              )}
+                </button>
+
+                {(isAdmin || isAuthenticated) && (
+                  <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity border-l border-gray-200 pl-1 sm:pl-2 ml-0 sm:ml-1">
+                    {isAdmin && onDeleteTrack && (
+                      <button
+                        type="button"
+                        onClick={(e) => handleDelete(e, track.id)}
+                        className="p-2 hover:bg-red-100 hover:text-red-600 rounded-lg transition-colors"
+                        aria-label="Удалить трек"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                    {isAuthenticated && onEditTrack && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); onEditTrack(track.id); }}
+                        className="p-2 hover:bg-blue-100 hover:text-blue-700 rounded-lg transition-colors"
+                        aria-label="Редактировать"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>

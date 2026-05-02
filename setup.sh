@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "=== Music Player Setup Script ==="
+echo "=== PingMusic Setup Script ==="
 echo ""
 
 # Backend setup
