@@ -1,0 +1,38 @@
+name: Deploy to Yandex Cloud
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install and Build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Get IAM token via federation
+        id: token
+        uses: docker://ghcr.io/yc-actions/yc-iam-token-fed:1.0.0
+        with:
+          yc-sa-id: ajei5br939md678i3j92
+
+      - name: Upload to Yandex Object Storage
+        uses: yc-actions/yc-obj-storage-upload@v3
+        with:
+          yc-iam-token: ${{ steps.token.outputs.token }}
+          bucket: radio-fm
+          root: ./dist
+          clear: true
