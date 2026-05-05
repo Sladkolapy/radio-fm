@@ -18,10 +18,16 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - name: Install and Build
         run: |
-          npm ci
-          npm run build
+          cd Neon-Player
+          pnpm install --frozen-lockfile
+          pnpm run build
 
       - name: Get IAM token via federation
         id: token
@@ -34,5 +40,5 @@ jobs:
         with:
           yc-iam-token: ${{ steps.token.outputs.token }}
           bucket: radio-fm
-          root: ./dist
+          root: ./Neon-Player/artifacts/sonara/dist
           clear: true
