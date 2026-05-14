@@ -1,181 +1,288 @@
-# Музыкальный плеер с локальным хранилищем
+# PingMusic / my_music_player
 
-Полный музыкальный плеер с локальным хранилищем файлов, созданный с использованием Node.js + Express + SQLite для бэкенда и React + TypeScript + Vite для фронтенда.
+Музыкальный плеер с локальным хранением аудио, обложек и метаданных. Backend работает на Node.js + Express + SQLite, frontend — на React + TypeScript + Vite.
 
-## Технологии
+## Как запустить
 
-### Backend
-- Node.js + Express
-- SQLite3
-- Multer (загрузка файлов)
-- JWT авторизация
-- Bcrypt (хеширование паролей)
-- CORS
+### Вариант 1: локально для разработки
 
-### Frontend
-- React 18
-- TypeScript
-- Vite
-- Redux Toolkit
-- TailwindCSS
-- React Router
-- Axios
+Нужен Node.js 18+ и npm.
 
-## Структура проекта
-
-```
-my_music_player/
-├── backend/                    # Backend сервер
-│   ├── server.js              # Основной файл сервера
-│   ├── config/                # Конфигурация
-│   ├── controllers/           # Контроллеры
-│   ├── middleware/            # Middleware
-│   ├── routes/                # API роуты
-│   ├── uploads/               # Загруженные файлы
-│   ├── database/              # База данных
-│   └── package.json
-└── frontend/                   # Frontend приложение
-    ├── src/
-    │   ├── features/          # Фичи приложения
-    │   ├── pages/             # Страницы
-    │   ├── shared/            # Общий функционал
-    │   ├── store/             # Redux store
-    │   ├── styles/            # Стили
-    │   ├── App.tsx
-    │   └── main.tsx
-    ├── package.json
-    └── vite.config.ts
-```
-
-## Установка и запуск
-
-Первичная установка зависимостей (корень репозитория):
+Установить зависимости из корня проекта:
 
 ```bash
 ./setup.sh
 ```
 
-Либо вручную: `npm install` в каталогах `backend` и `frontend`. Подробный пошаговый сценарий — в [QUICK_START.md](QUICK_START.md).
-
-### Разработка (два процесса)
-
-**Backend** — порт по умолчанию `3000` (переопределяется переменной `PORT` в `.env` в каталоге `backend`).
+Если `setup.sh` не нужен, можно вручную:
 
 ```bash
 cd backend
 npm install
-npm run dev      # nodemon
-```
 
-**Frontend** — Vite проксирует `/api` и `/uploads` на `http://localhost:3000` (см. `frontend/vite.config.ts`). Клиент ходит в API по относительному пути `/api`, а не на полный URL.
-
-```bash
-cd frontend
+cd ../frontend
 npm install
-npm run dev      # http://localhost:5173
 ```
 
-Сборка фронтенда без запуска сервера разработки:
+Запустить backend в первом терминале:
+
+```bash
+cd backend
+npm run dev
+```
+
+Backend будет доступен на `http://localhost:3000`.
+
+Запустить frontend во втором терминале:
 
 ```bash
 cd frontend
-npm run build    # артефакты в frontend/dist
-npm run preview  # опционально: проверка production-сборки (порт см. в выводе Vite)
+npm run dev
 ```
 
-### Развёртывание на сервере (production)
+Frontend будет доступен на `http://localhost:5173`.
 
-В production один процесс **Express** поднимается из каталога `backend` и, при `NODE_ENV=production`, отдаёт статику из `../frontend/dist` и API с того же хоста/порта (см. `backend/server.js`).
+Открывать приложение нужно здесь:
 
-1. Собрать фронтенд: `cd frontend && npm ci && npm run build`.
-2. В `backend` создать `.env` (образец — [backend/.env.example](backend/.env.example)): задать **JWT_SECRET** и при необходимости **PORT**.
-3. Запустить: `cd backend && NODE_ENV=production npm start`.
+```text
+http://localhost:5173
+```
 
-Пользователи открывают одно приложение: `http://<хост>:<PORT>/` (API: `http://<хост>:<PORT>/api/...`).
-
-**Важно:** пути `uploads/` и `database/` на сервере должны быть доступны для записи процессу Node. Резервное копирование — как минимум каталог `backend/database` и `backend/uploads`.
-
-## Функциональность
-
-### Авторизация
-- Регистрация новых пользователей
-- Вход в систему
-- JWT токены авторизации
-- Выход из системы
-
-### Управление треками
-- Просмотр всех треков
-- Прослушивание треков с плеером
-- Mood selector для выбора настроения треков
-- Создание новых треков с загрузкой аудио и обложек
-- Редактирование и удаление треков
-- Админ панель для управления всеми треками
-
-### API Endpoints
-
-#### Авторизация
-- `POST /api/auth/register` - регистрация
-- `POST /api/auth/login` - вход
-- `GET /api/auth/profile` - получить профиль (требуется токен)
-
-#### Треки
-- `GET /api/tracks` - публичный список треков
-- `GET /api/tracks/:id` - информация о треке
-- `GET /api/tracks/private` - приватные треки пользователя (требуется токен)
-- `POST /api/tracks` - создать трек (требуется токен)
-- `PUT /api/tracks/:id` - обновить трек (требуется токен)
-- `DELETE /api/tracks/:id` - удалить трек (требуется токен)
-- `GET /api/admin/tracks` - админ панель (требуется токен)
-
-#### Теги
-- `GET /api/tags` - список тегов
-- `GET /api/tags/:id/tracks` - треки по тегу
-- `POST /api/tags`, `PUT /api/tags/:id`, `DELETE /api/tags/:id` - создание/изменение/удаление (токен + права администратора)
-
-### Mood Types
-- `focus` - Фокус
-- `energy` - Энергичность
-- `calm` - Спокойствие
-- `motivation` - Мотивация
-- `relax` - Релаксация
-
-## Требования
-
-### Node.js
-- Node.js 18+ recommended
-- npm или yarn
-
-### Дополнительно
-- Tailwind CSS CLI для компиляции стилей (уже включен в dev dependencies)
-- React Router для навигации (уже включен в dependencies)
-
-## Безопасность
-
-- Пароли хешируются с bcrypt
-- JWT токены для авторизации
-- Защита маршрутов от неавторизованных запросов
-- Валидация загружаемых файлов
-- Ограничение размера файлов (100MB для аудио, 5MB для обложек)
-
-## Разработка
-
-### Добавление новых mood типов
-
-1. Добавьте новый mood в массив moodOptions в `frontend/src/features/music/components/MoodSelector.tsx`
-2. Добавьте новый mood в массив moodTypes в `backend/controllers/trackController.js`
-3. Добавьте цвет в `frontend/src/shared/config/moodColors.ts` (тип `Track['mood_type']` при необходимости обновить в типах)
-
-### Добавление нового трека через API
+Vite сам проксирует `/api` и `/uploads` на backend. Если backend запущен не на `localhost:3000`, задайте:
 
 ```bash
-curl -X POST http://localhost:3000/api/tracks \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -F "audio=@/path/to/audio.mp3" \
-  -F "title=Track Title" \
-  -F "artist=Artist Name" \
-  -F "mood_type=focus" \
-  -F "cover=@/path/to/cover.jpg"
+VITE_DEV_API_TARGET=http://localhost:3001 npm run dev
 ```
+
+### Вариант 2: через Docker Compose для разработки
+
+Из корня проекта:
+
+```bash
+docker compose up --build
+```
+
+После запуска:
+
+- frontend: `http://localhost:5173`
+- backend: `http://localhost:3000`
+- health check: `http://localhost:3000/health`
+
+В `docker-compose.yml` backend и frontend запускаются отдельными сервисами, а frontend ходит к backend по `http://backend:3000`.
+
+### Вариант 3: production одним Express-сервером
+
+Собрать frontend:
+
+```bash
+cd frontend
+npm ci
+npm run build
+```
+
+Запустить backend в production:
+
+```bash
+cd ../backend
+JWT_SECRET=change-me NODE_ENV=production npm start
+```
+
+Приложение будет доступно на backend-порту:
+
+```text
+http://localhost:3000
+```
+
+В production Express отдаёт API и собранный frontend из `frontend/dist`.
+
+### Вариант 4: production через Docker Compose
+
+Создайте `.env` в корне проекта:
+
+```env
+JWT_SECRET=change-me-to-a-long-random-secret
+PORT=3000
+```
+
+Запустите:
+
+```bash
+docker compose -f docker-compose.prod.yml up --build -d
+```
+
+Открывайте:
+
+```text
+http://localhost:3000
+```
+
+Данные production-контейнера хранятся в Docker volumes:
+
+- `music_db`
+- `music_uploads`
+
+## Первый вход
+
+При старте backend создаёт администратора, если его ещё нет:
+
+- логин: `admin`
+- пароль: `admin123`
+
+Можно переопределить через переменные:
+
+```bash
+ADMIN_USERNAME=myadmin ADMIN_PASSWORD=strong-password npm start
+```
+
+Для обычного пользователя можно зарегистрироваться через кнопку `Sign Up` в интерфейсе.
+
+## Переменные окружения
+
+Backend:
+
+- `PORT` — порт backend, по умолчанию `3000`.
+- `NODE_ENV=production` — включает раздачу `frontend/dist` из Express.
+- `JWT_SECRET` — секрет подписи JWT. Для production обязателен.
+- `JWT_EXPIRES_IN` — срок жизни JWT, по умолчанию `7d`.
+- `ADMIN_USERNAME` — логин seed-админа, по умолчанию `admin`.
+- `ADMIN_PASSWORD` — пароль seed-админа, по умолчанию `admin123`.
+
+Frontend dev:
+
+- `VITE_DEV_API_TARGET` — backend target для Vite proxy, по умолчанию `http://localhost:3000`.
+
+## Проверка, что всё работает
+
+Backend:
+
+```bash
+curl http://localhost:3000/health
+```
+
+Ожидаемый ответ:
+
+```json
+{"status":"ok","timestamp":"..."}
+```
+
+Frontend:
+
+```text
+http://localhost:5173
+```
+
+Для production:
+
+```text
+http://localhost:3000
+```
+
+## Тесты
+
+Backend:
+
+```bash
+cd backend
+npm test
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm test
+```
+
+Сборка frontend:
+
+```bash
+cd frontend
+npm run build
+```
+
+## Что умеет приложение
+
+- Регистрация и вход через JWT.
+- Роли `user` и `admin`.
+- Просмотр музыкальной библиотеки.
+- Загрузка аудио и обложек.
+- Создание, редактирование и удаление треков.
+- Теги и фильтрация по тегам.
+- Настроения треков: `focus`, `energy`, `calm`, `motivation`, `relax`.
+- Админ-панель для управления всеми треками и тегами.
+- Offline-сохранение аудио в браузере через Cache Storage/service worker.
+
+## Структура проекта
+
+```text
+my_music_player/
+├── backend/
+│   ├── server.js              # Express entrypoint
+│   ├── config/                # SQLite и Multer
+│   ├── controllers/           # auth/tracks/tags
+│   ├── middleware/            # JWT и admin middleware
+│   ├── routes/                # API routes
+│   ├── tests/                 # Jest/Supertest
+│   ├── database/              # SQLite database
+│   └── uploads/               # audio/covers
+├── frontend/
+│   ├── src/
+│   │   ├── pages/             # страницы
+│   │   ├── features/          # auth/music/admin
+│   │   ├── shared/            # API, UI, types, lib
+│   │   ├── store/             # Redux store
+│   │   └── styles/            # CSS/Tailwind
+│   ├── public/service-worker.js
+│   └── vite.config.ts
+├── docs/PROJECT.md            # подробная карта проекта
+├── API_DOCUMENTATION.md       # подробное API
+├── QUICK_START.md             # короткий старт
+├── docker-compose.yml         # dev compose
+└── docker-compose.prod.yml    # prod compose
+```
+
+## API кратко
+
+Auth:
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/profile`
+
+Tracks:
+
+- `GET /api/tracks`
+- `GET /api/tracks/:id`
+- `GET /api/tracks/private`
+- `POST /api/tracks`
+- `PUT /api/tracks/:id`
+- `DELETE /api/tracks/:id`
+- `GET /api/admin/tracks`
+
+Tags:
+
+- `GET /api/tags`
+- `GET /api/tags/:id/tracks`
+- `POST /api/tags`
+- `PUT /api/tags/:id`
+- `DELETE /api/tags/:id`
+
+Подробности: `API_DOCUMENTATION.md`.
+
+## Важные файлы данных
+
+Для backup нужны:
+
+- `backend/database`
+- `backend/uploads`
+
+В Docker production им соответствуют volumes `music_db` и `music_uploads`.
+
+## Документация
+
+- `docs/PROJECT.md` — подробное описание архитектуры и устройства проекта.
+- `QUICK_START.md` — быстрый старт.
+- `API_DOCUMENTATION.md` — API reference.
 
 ## Лицензия
 
